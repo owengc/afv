@@ -43,9 +43,10 @@ public:
         //lets record the volume into an array
         history.push_back( v );
         //if we are bigger the the size we want to record - lets drop the oldest value
-        if( history.size() >= 1200 ){
-            history.erase(history.begin(), history.begin()+1);
+        if( history.size() >= 800 ){
+            history.erase(history.begin(), history.begin()+400);
         }
+        scaled = v;
     }
     
 };

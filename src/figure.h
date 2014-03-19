@@ -30,7 +30,10 @@ public:
 	float yPosition;
 	float xTarget;
 	float yTarget;
-	
+    float xOrigin;
+    float yOrigin;
+    float radius;
+    
 	float lifespan;
     ofxVectorGraphics * vectorGraphics;
     ofxAudioFeaturesChannel * featuresChannel;

@@ -56,8 +56,8 @@ void testApp::update(){
      std::cout << "Smoothed feature measurement: " << featureValue << std::endl;
      */
 	//lets scale the vol up to a 0-1 range
-    int onsetFeature = 0;
-    int featureA = 1;
+    int onsetFeatureIdx = 0;
+    int featureAIdx = 1;
     for(int i = 0; i < featuresChannel.usingFeatures.size(); ++i){
         //each feature's history will be updated with the latest smoothed & scaled measurement
         featureName = featuresChannel.usingFeatures[i].name;
@@ -72,65 +72,46 @@ void testApp::update(){
         scaledFeature = ofMap(smoothedFeature, featureMin, featureMax, 0.0, 1.0, true);
         featuresChannel.usingFeatures[i].update(scaledFeature);
         
-        if(i == onsetFeature){
-            vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
-            float longAvg = getAvg(0, featureHistory);
-            float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
-            if(i == onsetFeature && (shortAvg + scaledFeature > longAvg || figures.size() == 0)){
-                Figure *newFigure = new Figure (scaledFeature, &featuresChannel);
-                figures.push_back(*newFigure);
-            }
-        }
-        int j = 0;
-        while(j < figures.size()){
-            if(figures[j].lifespan == 0.0){
-                figures.erase(figures.begin() + j);
-            }
-            else{
-                figures[j].update();//make sure this only gets called for one feature
-            }
-            j++;
-        }
-            
-
         //only calculate current averages for features we're actually using
-        /*if(i == onsetFeature || i == featureA){//0th feature is 'onset' feature, use it to control figures
+        if(i == onsetFeatureIdx || i == featureAIdx){//0th feature is 'onset' feature, use it to control figures
             vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
-            float longAvg = getAvg(0, featureHistory);
+            float longAvg = getAvg((int)(featureHistory->size() * 0.3), featureHistory);
             float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
-            if(i == onsetFeature && (shortAvg + scaledFeature > longAvg || figures.size() == 0)){
-                Figure *newFigure = new Figure (scaledFeature);
+            if(i == onsetFeatureIdx && (scaledFeature > longAvg || figures.size() == 0)){
+                Figure *newFigure = new Figure(scaledFeature, &vectorGraphics, &featuresChannel);
                 figures.push_back(*newFigure);
             }
             //update figures
             int j = 0;
             while(j < figures.size()){
-                if(i == onsetFeature && figures[j].lifespan == 0.0){
+                if(i == onsetFeatureIdx && figures[j].lifespan == 0.0){
                     figures.erase(figures.begin() + j);
                 }
                 else{
-                    if(i == onsetFeature){
-                        figures[j].input =  (curVolume > 0.0001)?curVolume / scaledFeature:scaledFeature / curVolume;//curVolume / scaledFeature;//
-                        std::cout << "onset feature: " << scaledFeature << std::endl;
-                        if(scaledFeature > longAvg * 1.75){
+                    if(i == onsetFeatureIdx){
+                        figures[j].input = curVolume / scaledFeature;
+                        //std::cout << "onset feature: " << scaledFeature << std::endl;
+                        if(figures[j].input > abs(longAvg - shortAvg) * 1.75){//scaledFeature * curVolume
                             figures[j].chooseTarget();
                         }
                         figures[j].update();//make sure this only gets called for one feature
                     }
-                    if(i == featureA && scaledFeature < longAvg * 0.1) {
+                    if(i == featureAIdx && scaledFeature < longAvg * 0.1) {
                         figures[j].color.setHue(ofRandom(255));
                     }
                     j++;
                 }
-                    //  }
             }
-        }*/
+        }
     }
 }
 
 float testApp::getAvg(int start, vector<float> * data){
 	float sum = 0.0;
     int size = data->size();
+    if(size <= 1){
+        return 0.0;
+    }
 	for (int i = start; i < size; ++i) {
 		sum += data->operator[](i);
 	}
@@ -166,6 +147,7 @@ void testApp::audioIn(float * input, int bufferSize, int nChannels){
     
     // this is how we get the root of rms :)
     curVolume = sqrt( curVolume );
+    curVolume = (curVolume > 1.0)?1.0:curVolume;
     featuresChannel.process(time(0));
     //smpl_t * featureValue = fvec_get_data(featuresChannel.spectralFeatureOutputBuffer["specflux"]);
     //std::cout << "Feature measurement: " << *featureValue << std::endl;
