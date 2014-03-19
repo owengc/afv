@@ -57,7 +57,7 @@ void testApp::update(){
      */
 	//lets scale the vol up to a 0-1 range
     int onsetFeatureIdx = 0;
-    int featureAIdx = 1;
+    int colorFeatureIdx = 1;
     for(int i = 0; i < featuresChannel.usingFeatures.size(); ++i){
         //each feature's history will be updated with the latest smoothed & scaled measurement
         featureName = featuresChannel.usingFeatures[i].name;
@@ -73,7 +73,7 @@ void testApp::update(){
         featuresChannel.usingFeatures[i].update(scaledFeature);
         
         //only calculate current averages for features we're actually using
-        if(i == onsetFeatureIdx || i == featureAIdx){//0th feature is 'onset' feature, use it to control figures
+        if(i == onsetFeatureIdx || i == colorFeatureIdx){//0th feature is 'onset' feature, use it to control figures
             vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
             float longAvg = getAvg((int)(featureHistory->size() * 0.3), featureHistory);
             float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
@@ -96,7 +96,7 @@ void testApp::update(){
                         }
                         figures[j].update();//make sure this only gets called for one feature
                     }
-                    if(i == featureAIdx && scaledFeature < longAvg * 0.1) {
+                    if(i == colorFeatureIdx && scaledFeature < longAvg * 0.1) {
                         figures[j].color.setHue(ofRandom(255));
                     }
                     j++;
@@ -120,9 +120,12 @@ float testApp::getAvg(int start, vector<float> * data){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+    float sizeFeatureValue;
+    int textureFeatureIdx = 3;
+    float textureFeatureValue = (float)featuresChannel.usingFeatures[textureFeatureIdx].scaled;
 	ofBackgroundGradient(bgColor1, bgColor2, OF_GRADIENT_CIRCULAR);
 	for (int i = 0; i < figures.size(); ++i) {
-		figures[i].draw();
+		figures[i].draw(textureFeatureValue);
 	}
 }
 

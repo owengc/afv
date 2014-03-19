@@ -21,7 +21,7 @@ public:
 	void update();
 	void chooseTarget();
 	void moveTo();
-	void draw();
+	void draw(const float textureFeatureValue);
 	
 	//Properties
 	ofColor color;

@@ -16,7 +16,7 @@ Figure::Figure(float data, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc)
 	input = data;
 	lifespan = data*100.0;
 	color.setHsb(ofRandom(255),ofRandom(255),ofRandom(255));
-	
+
     xOrigin = ofGetWindowWidth()*0.5;
     yOrigin = ofGetWindowHeight()*0.5;
     
@@ -65,46 +65,44 @@ void Figure::update(){
 	}
 
 }
-void Figure::draw(){
+void Figure::draw(const float textureFeatureValue){
 	if(lifespan>0.0){
 		ofSetColor(0xFFFFFF);
 		ofFill();
         ofCircle(xPosition, yPosition, 0.0, radius);
-        
-        vectorGraphics->setColor(color.getHex());
-        vectorGraphics->beginShape();
-        
-		//set number of sides based on mouse position
-        int textureFeatureIdx = 3;
-        float textureFeatureValue = (float)featuresChannel->usingFeatures[textureFeatureIdx].scaled;
-		int numSteps = ( textureFeatureValue )* 24.0;
-        
-		//make sure we don't go bellow 3 sides
-		numSteps = MAX(3, numSteps);
-        
-		float step		= TWO_PI / (numSteps);
-		float angle		= 2.0 * (float)M_PI * ofRandomf();
-		float scale = 1.0;// + input
-        
-		for(int i = 0; i < numSteps; i++){
-			float rx = xPosition + cos(angle) * radius;
-			float ry = yPosition + sin(angle) * radius;
+        if(radius > 1.0){
+            vectorGraphics->setColor(color.getHex());
+            vectorGraphics->beginShape();
             
-			if(i == 0){
-				vectorGraphics->polyVertex(rx, ry);
-			}
+            int numSteps = ( textureFeatureValue ) * 24.0;
             
-			float rx2 = xPosition + cos(angle+step) * radius;
-			float ry2 = yPosition + sin(angle+step) * radius;
+            //make sure we don't go bellow 3 sides
+            numSteps = MAX(3, numSteps);
             
-			//lets make our control points in between each side and out a little way
-			float cx = xPosition + cos(angle + step*0.5) * radius * scale;
-			float cy = yPosition + sin(angle + step*0.5) * radius * scale;
+            float step		= TWO_PI / (numSteps);
+            float angle		= 2.0 * (float)M_PI * ofRandomf();
+            float scale = 1.0;// + input
             
-			vectorGraphics->bezierVertex(cx, cy, cx, cy, rx2, ry2);
-            
-			angle += step;
-		}
-        vectorGraphics->endShape(true);
+            for(int i = 0; i < numSteps; i++){
+                float rx = xPosition + cos(angle) * radius;
+                float ry = yPosition + sin(angle) * radius;
+                
+                if(i == 0){
+                    vectorGraphics->polyVertex(rx, ry);
+                }
+                
+                float rx2 = xPosition + cos(angle+step) * radius;
+                float ry2 = yPosition + sin(angle+step) * radius;
+                
+                //lets make our control points in between each side and out a little way
+                float cx = xPosition + cos(angle + step*0.5) * radius * scale;
+                float cy = yPosition + sin(angle + step*0.5) * radius * scale;
+                
+                vectorGraphics->bezierVertex(cx, cy, cx, cy, rx2, ry2);
+                
+                angle += step;
+            }
+            vectorGraphics->endShape(true);
+        }
 	}
 }
