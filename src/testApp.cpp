@@ -38,7 +38,7 @@ void testApp::setup(){
 	featuresChannel.setup(bufferSize, bufferSize / 2, 44100);
 
     
-	Figure newFigure (1.0);
+	Figure newFigure (1.0, &vectorGraphics, &featuresChannel);
 	figures.push_back(newFigure);
 }
 
@@ -72,9 +72,29 @@ void testApp::update(){
         scaledFeature = ofMap(smoothedFeature, featureMin, featureMax, 0.0, 1.0, true);
         featuresChannel.usingFeatures[i].update(scaledFeature);
         
+        if(i == onsetFeature){
+            vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
+            float longAvg = getAvg(0, featureHistory);
+            float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
+            if(i == onsetFeature && (shortAvg + scaledFeature > longAvg || figures.size() == 0)){
+                Figure *newFigure = new Figure (scaledFeature, &featuresChannel);
+                figures.push_back(*newFigure);
+            }
+        }
+        int j = 0;
+        while(j < figures.size()){
+            if(figures[j].lifespan == 0.0){
+                figures.erase(figures.begin() + j);
+            }
+            else{
+                figures[j].update();//make sure this only gets called for one feature
+            }
+            j++;
+        }
+            
 
         //only calculate current averages for features we're actually using
-        if(i == onsetFeature || i == featureA){//0th feature is 'onset' feature, use it to control figures
+        /*if(i == onsetFeature || i == featureA){//0th feature is 'onset' feature, use it to control figures
             vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
             float longAvg = getAvg(0, featureHistory);
             float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
@@ -90,7 +110,7 @@ void testApp::update(){
                 }
                 else{
                     if(i == onsetFeature){
-                        figures[j].input = curVolume / scaledFeature;
+                        figures[j].input =  (curVolume > 0.0001)?curVolume / scaledFeature:scaledFeature / curVolume;//curVolume / scaledFeature;//
                         std::cout << "onset feature: " << scaledFeature << std::endl;
                         if(scaledFeature > longAvg * 1.75){
                             figures[j].chooseTarget();
@@ -104,7 +124,7 @@ void testApp::update(){
                 }
                     //  }
             }
-        }
+        }*/
     }
 }
 

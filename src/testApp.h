@@ -30,6 +30,8 @@ class testApp : public ofBaseApp{
     
     ofColor bgColor1;
     ofColor bgColor2;
+    ofxVectorGraphics vectorGraphics;
+    vector <ofPoint> pts;
     
     ofSoundStream soundStream;
     ofxAudioFeaturesChannel featuresChannel;

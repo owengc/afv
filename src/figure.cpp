@@ -9,8 +9,9 @@
 
 #include "figure.h"
 
-Figure::Figure(float data){
-	
+Figure::Figure(float data, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc){
+    vectorGraphics = vg;
+	featuresChannel = fc;
 	ofSeedRandom();
 	input = data;
 	lifespan = data*100.0;
@@ -60,5 +61,6 @@ void Figure::draw(){
 		ofSetColor(color);
 		ofFill();
 		ofCircle(xPosition, yPosition, 0.0, ofMap(input, 0.0, 1.0, 1.0+(min(ofGetWindowWidth(),ofGetWindowHeight())/4*input), min(ofGetWindowWidth(),ofGetWindowHeight()/2)*input));
+
 	}
 }

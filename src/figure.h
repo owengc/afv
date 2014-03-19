@@ -10,11 +10,12 @@
 #define figure_h
 
 #include "ofMain.h"
+#include "ofxAudioFeaturesChannel.h"
 #include "ofxVectorGraphics.h"
 class Figure {
 public:
 	//Consructor
-	Figure(float data);
+	Figure(float data, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc);
 	
 	//Methods
 	void update();
@@ -31,5 +32,7 @@ public:
 	float yTarget;
 	
 	float lifespan;
+    ofxVectorGraphics * vectorGraphics;
+    ofxAudioFeaturesChannel * featuresChannel;
 };
 #endif
