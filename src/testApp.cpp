@@ -57,7 +57,6 @@ void testApp::update(){
      */
 	//lets scale the vol up to a 0-1 range
     for(int i = 0; i < featuresChannel.usingFeatures.size(); ++i){
-
         featureName = featuresChannel.usingFeatures[i].name;
         featureMin = featuresChannel.usingFeatures[i].minimum;
         featureMax = featuresChannel.usingFeatures[i].maximum;
@@ -70,11 +69,11 @@ void testApp::update(){
         scaledFeature = ofMap(smoothedFeature, featureMin, featureMax, 0.0, 1.0, true);
         featuresChannel.usingFeatures[i].update(scaledFeature);
         
-        if(i == 0 || i == 1){//0th feature is 'onset' feature, use it to control figures
+        if(i == 0){//0th feature is 'onset' feature, use it to control figures
             vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
             float longAvg = getAvg(0, featureHistory);
             float shortAvg = getAvg((int)(featureHistory->size() * 0.95), featureHistory);
-            if(i == 0 && (shortAvg + scaledFeature > longAvg || figures.size() == 0)){
+            if(shortAvg + scaledFeature > longAvg || figures.size() == 0){
                 Figure *newFigure = new Figure (scaledFeature);
                 figures.push_back(*newFigure);
             }
@@ -86,15 +85,14 @@ void testApp::update(){
                 }
                 else{
                     figures[j].input = scaledFeature;
-                    if(i == 0 && scaledFeature > longAvg * 1.75){
+                    if(scaledFeature > longAvg * 1.75){
                         figures[j].chooseTarget();
                     }
-                    if(i== 1  && scaledFeature < longAvg * 0.1) {
+                    if(scaledFeature < longAvg * 0.1) {
                         figures[j].color.setHue(ofRandom(255));
+                        //chooseColors();
                     }
-                    if(i == 0){
-                        figures[j].update();
-                    }
+                    figures[j].update();
                     j++;
                 }
             }
