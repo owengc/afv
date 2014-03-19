@@ -43,4 +43,5 @@ class testApp : public ofBaseApp{
     float scaledFeature;
     float featureMin;
     float featureMax;
+    float curVolume;
 };
