@@ -102,7 +102,6 @@ void testApp::update(){
                     }
                     j++;
                 }
-                    //  }
             }
         }
     }
