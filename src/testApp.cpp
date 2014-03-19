@@ -77,7 +77,7 @@ void testApp::update(){
             vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
             float longAvg = getAvg((int)(featureHistory->size() * 0.3), featureHistory);
             float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
-            if(i == onsetFeatureIdx && (scaledFeature > longAvg || figures.size() == 0)){
+            if(i == onsetFeatureIdx && (shortAvg + scaledFeature > longAvg || figures.size() == 0)){
                 Figure *newFigure = new Figure(scaledFeature, &vectorGraphics, &featuresChannel);
                 figures.push_back(*newFigure);
             }
@@ -91,7 +91,7 @@ void testApp::update(){
                     if(i == onsetFeatureIdx){
                         figures[j].input = curVolume / scaledFeature;
                         //std::cout << "onset feature: " << scaledFeature << std::endl;
-                        if(figures[j].input > abs(longAvg - shortAvg) * 1.75){//scaledFeature * curVolume
+                        if(scaledFeature > abs(longAvg - shortAvg) * 1.75){//scaledFeature * curVolume
                             figures[j].chooseTarget();
                         }
                         figures[j].update();//make sure this only gets called for one feature
