@@ -17,7 +17,9 @@ Figure::Figure(const float l, const float s, const float t, ofxVectorGraphics * 
     size = s * 10.0;
     radius = s;
     texture = t;
-	color.setHsb(ofRandom(255),ofRandom(255),ofRandom(255));
+	color.setHsb(ofRandom(255),ofRandom(255),ofRandom(255), lifespan * 2);
+	color.setSaturation(ofMap(size, 0.0, 1.0, 127.0, 64.0, true));
+	color.setBrightness(ofMap(size, 0.0, 1.0, 127.0, 255.0, true));
 
     xOrigin = ofGetWindowWidth()*0.5;
     yOrigin = ofGetWindowHeight()*0.5;
@@ -44,9 +46,10 @@ void Figure::moveTo(){
 }
 void Figure::update(const float t, const float x){
     if(lifespan > 0.01){
-		lifespan -= lifespan * size * x;
+		lifespan -= lifespan * size * 10 * x;
         radius = (lifespan * yOrigin) * size * x;//making this proportional to life span
         texture = t;//updating this continuously
+
 	}
 	else {
 		lifespan = 0.0;
@@ -63,8 +66,6 @@ void Figure::update(const float t, const float x){
 	}
 	moveTo();
 	
-	color.setSaturation(ofMap(size, 0.0, 1.0, 127.0, 64.0, true));
-	color.setBrightness(ofMap(size, 0.0, 1.0, 127.0, 255.0, true));
 }
 void Figure::draw(){
 	if(lifespan > 0.0){

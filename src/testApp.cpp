@@ -4,6 +4,7 @@
 void testApp::setup(){
 	//graphics
 	ofEnableSmoothing();
+    ofEnableAlphaBlending();
 	ofSetFrameRate(30);
 	ofSeedRandom();
 	
