@@ -30,102 +30,105 @@ void testApp::setup(){
 	left.assign(bufferSize, 0.0);
 	right.assign(bufferSize, 0.0);
 	
-    
-	smoothedFeature     = 0.0;
-	scaledFeature		= 0.0;
-    
 	soundStream.setup(this, 0, 2, 44100, bufferSize, 4);
 	featuresChannel.setup(bufferSize, bufferSize / 2, 44100);
-
-    
-	Figure newFigure (1.0, &vectorGraphics, &featuresChannel);
-	figures.push_back(newFigure);
-}
-
-//--------------------------------------------------------------
-void testApp::update(){
-    /*
-     
-     //float featureValue = (float)aubio_bintofreq(fvec_read_sample(featuresChannel.spectralFeatureOutputBuffer["centroid"], 0), 44100, 2048);
-     //float featureValue = (float)fvec_read_sample(featuresChannel.spectralFeatureOutputBuffer["decrease"], 0);
-     //featureValue = CLAMP(featureValue, featureMin, featureMax);
-     smoothedFeature += 0.07 * featureValue;
-     //scaled = ofMap(smoothedFeature, minimum, maximum, 0.0, 1.0, true);
-     
-     //smpl_t featureValue = featuresChannel.ons
-     std::cout << "Smoothed feature measurement: " << featureValue << std::endl;
-     */
-	//lets scale the vol up to a 0-1 range
-    int onsetFeatureIdx = 0;
-    int colorFeatureIdx = 1;
+    //get indexes for feature names specified in header file
     for(int i = 0; i < featuresChannel.usingFeatures.size(); ++i){
-        //each feature's history will be updated with the latest smoothed & scaled measurement
-        featureName = featuresChannel.usingFeatures[i].name;
-        featureMin = featuresChannel.usingFeatures[i].minimum;
-        featureMax = featuresChannel.usingFeatures[i].maximum;
-        featureValue = *fvec_get_data(featuresChannel.spectralFeatureOutputBuffer[featureName]);
-        featureValue = CLAMP(featureValue, featureMin, featureMax);
-
-        featuresChannel.usingFeatures[i].smoothed *= 0.93;
-        featuresChannel.usingFeatures[i].smoothed += 0.07 * featureValue;
-        smoothedFeature = featuresChannel.usingFeatures[i].smoothed;
-        scaledFeature = ofMap(smoothedFeature, featureMin, featureMax, 0.0, 1.0, true);
-        featuresChannel.usingFeatures[i].update(scaledFeature);
-        
-        //only calculate current averages for features we're actually using
-        if(i == onsetFeatureIdx || i == colorFeatureIdx){//0th feature is 'onset' feature, use it to control figures
-            vector<float> * featureHistory = &featuresChannel.usingFeatures[i].history;
-            float longAvg = getAvg((int)(featureHistory->size() * 0.3), featureHistory);
-            float shortAvg = getAvg((int)(featureHistory->size() * 0.9), featureHistory);
-            if(i == onsetFeatureIdx && (shortAvg + scaledFeature > longAvg || figures.size() == 0)){
-                Figure *newFigure = new Figure(scaledFeature, &vectorGraphics, &featuresChannel);
-                figures.push_back(*newFigure);
-            }
-            //update figures
-            int j = 0;
-            while(j < figures.size()){
-                if(i == onsetFeatureIdx && figures[j].lifespan == 0.0){
-                    figures.erase(figures.begin() + j);
-                }
-                else{
-                    if(i == onsetFeatureIdx){
-                        figures[j].input = curVolume / scaledFeature;
-                        //std::cout << "onset feature: " << scaledFeature << std::endl;
-                        if(scaledFeature > abs(longAvg - shortAvg) * 1.75){//scaledFeature * curVolume
-                            figures[j].chooseTarget();
-                        }
-                        figures[j].update();//make sure this only gets called for one feature
-                    }
-                    if(i == colorFeatureIdx && scaledFeature < longAvg * 0.1) {
-                        figures[j].color.setHue(ofRandom(255));
-                    }
-                    j++;
-                }
-            }
+        string name = featuresChannel.usingFeatures[i].name;
+        if(name == lifespanFeatureName){
+            lifespanFeatureIdx = i;
+        }
+        if(name == onsetFeatureName){
+            onsetFeatureIdx = i;
+        }
+        if(name == movementFeatureName){
+            movementFeatureIdx = i;
+        }
+        if(name == sizeFeatureName){
+            sizeFeatureIdx = i;
+        }
+        if(name == colorFeatureName){
+            colorFeatureIdx = i;
+        }
+        if(name == textureFeatureName){
+            textureFeatureIdx = i;
         }
     }
 }
 
-float testApp::getAvg(int start, vector<float> * data){
-	float sum = 0.0;
-    int size = data->size();
-    if(size <= 1){
-        return 0.0;
+//--------------------------------------------------------------
+void testApp::update(){
+	//first we'll update our audio features
+    for(int i = 0; i < featuresChannel.usingFeatures.size(); ++i){
+        //each feature's history will be updated with the latest smoothed & scaled measurement
+        featureName = featuresChannel.usingFeatures[i].name;
+        float featureValue = (float)*fvec_get_data(featuresChannel.spectralFeatureOutputBuffer[featureName]);
+        featuresChannel.usingFeatures[i].update(featureValue);
+        scaledFeatureVal = featuresChannel.usingFeatures[i].scaled;
+        //std::cout << "feature " << i << " value: " << scaledFeatureVal << std::endl;
+        //now store particular values with which to initiate new figures
+        if(i == lifespanFeatureIdx){
+            lifespanFeatureVal = scaledFeatureVal;
+        }
+        if(i == sizeFeatureIdx){
+            sizeFeatureVal = scaledFeatureVal;
+        }
+        if(i == colorFeatureIdx){
+            colorFeatureVal = scaledFeatureVal;
+        }
+        if(i == textureFeatureIdx){
+            textureFeatureVal = scaledFeatureVal;
+        }
     }
-	for (int i = start; i < size; ++i) {
-		sum += data->operator[](i);
-	}
-	return sum / size;
+    //here we'll check if we should create new figures based on the onset feature
+    Feature * onsetFeature = &featuresChannel.usingFeatures[onsetFeatureIdx];
+    if(onsetFeature->shortAvg + onsetFeature->scaled > onsetFeature->longAvg || figures.size() == 0){
+        int numNewFigures = 1 + (int) onsetFeature->smoothed * curVolume;
+        for(int i = 0; i < numNewFigures && i < 100; i++){//setting max threshold for number of new figures per frame
+            Figure *newFigure = new Figure(lifespanFeatureVal, sizeFeatureVal, textureFeatureVal,
+                                           &vectorGraphics, &featuresChannel);
+            figures.push_back(*newFigure);
+            std::cout << "drawing " << figures.size() << " figures. last size: " << sizeFeatureVal<< std::endl;
+        }
+    }
+    //now we'll update the figures
+    int j = 0;
+    while(j < figures.size()){
+        //cull dead figures
+        if(figures[j].lifespan == 0.0){
+            figures.erase(figures.begin() + j);
+        }
+        else{
+            //update living figures
+            
+            if(onsetFeature->scaled > abs(onsetFeature->longAvg - onsetFeature->shortAvg) * 1.75){//scaledFeature * curVolume
+                figures[j].chooseTarget();
+            }
+            figures[j].update(textureFeatureVal, curVolume);
+            j++;
+        }
+    }
+    /*
+     if(i == onsetFeatureIdx){
+     figures[j].input = curVolume / scaledFeature;
+     //std::cout << "onset feature: " << scaledFeature << std::endl;
+     if(scaledFeature > abs(longAvg - shortAvg) * 1.75){//scaledFeature * curVolume
+     figures[j].chooseTarget();
+     }
+     figures[j].update();//make sure this only gets called for one feature
+     }
+     if(i == colorFeatureIdx && scaledFeature < longAvg * 0.1) {
+     figures[j].color.setHue(ofRandom(255));
+     }*/
 }
+
+
 
 //--------------------------------------------------------------
 void testApp::draw(){
-    float sizeFeatureValue;
-    int textureFeatureIdx = 3;
-    float textureFeatureValue = (float)featuresChannel.usingFeatures[textureFeatureIdx].scaled;
 	ofBackgroundGradient(bgColor1, bgColor2, OF_GRADIENT_CIRCULAR);
 	for (int i = 0; i < figures.size(); ++i) {
-		figures[i].draw(textureFeatureValue);
+		figures[i].draw();
 	}
 }
 

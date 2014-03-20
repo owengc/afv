@@ -9,12 +9,14 @@
 
 #include "figure.h"
 
-Figure::Figure(float data, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc){
+Figure::Figure(const float l, const float s, const float t, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc){
     vectorGraphics = vg;
 	featuresChannel = fc;
 	ofSeedRandom();
-	input = data;
-	lifespan = data*100.0;
+	lifespan = l * 100.0;
+    size = s * 10.0;
+    radius = s;
+    texture = t;
 	color.setHsb(ofRandom(255),ofRandom(255),ofRandom(255));
 
     xOrigin = ofGetWindowWidth()*0.5;
@@ -37,10 +39,19 @@ void Figure::chooseTarget(){
 }
 
 void Figure::moveTo(){
-	xPosition += (xTarget - xPosition)*input;
-	yPosition += (yTarget - yPosition)*input;
+	xPosition += (xTarget - xPosition)*size;
+	yPosition += (yTarget - yPosition)*size;
 }
-void Figure::update(){
+void Figure::update(const float t, const float x){
+    if(lifespan > 0.01){
+		lifespan -= lifespan * size * x;
+        radius = (lifespan * yOrigin) * size * x;//making this proportional to life span
+        texture = t;//updating this continuously
+	}
+	else {
+		lifespan = 0.0;
+        return;
+	}
 	if(abs(xPosition-xTarget)/ofGetWindowWidth()<0.1 && abs(yPosition-yTarget)/ofGetWindowHeight()<0.1){
 		if(ofRandom(5)==1){
 			chooseTarget();
@@ -52,29 +63,20 @@ void Figure::update(){
 	}
 	moveTo();
 	
-	
-	color.setSaturation(ofMap(input, 0.0, 1.0, 127.0, 64.0, true));
-	color.setBrightness(ofMap(input, 0.0, 1.0, 127.0, 255.0, true));
-	if(lifespan>0.01){
-		lifespan -= lifespan*input*2;
-        radius = input * yOrigin;
-	}
-	else {
-		lifespan = 0.0;
-        radius = 0.0;
-	}
-
+	color.setSaturation(ofMap(size, 0.0, 1.0, 127.0, 64.0, true));
+	color.setBrightness(ofMap(size, 0.0, 1.0, 127.0, 255.0, true));
 }
-void Figure::draw(const float textureFeatureValue){
-	if(lifespan>0.0){
-		ofSetColor(0xFFFFFF);
+void Figure::draw(){
+	if(lifespan > 0.0){
+		ofSetColor(color);//change back to white at some point
 		ofFill();
         ofCircle(xPosition, yPosition, 0.0, radius);
-        if(radius > 1.0){
+        /*if(radius > 1.0){
+            
             vectorGraphics->setColor(color.getHex());
             vectorGraphics->beginShape();
             
-            int numSteps = ( textureFeatureValue ) * 24.0;
+            int numSteps = texture * 24.0;
             
             //make sure we don't go bellow 3 sides
             numSteps = MAX(3, numSteps);
@@ -103,6 +105,6 @@ void Figure::draw(const float textureFeatureValue){
                 angle += step;
             }
             vectorGraphics->endShape(true);
-        }
+        }*/
 	}
 }

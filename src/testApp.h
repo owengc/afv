@@ -9,7 +9,6 @@
 #include <ctime>
 
 class testApp : public ofBaseApp{
-
 	public:
 		void setup();
 		void update();
@@ -40,10 +39,28 @@ class testApp : public ofBaseApp{
     vector<Figure> figures;
     
     string featureName;
-    float featureValue;
-    float smoothedFeature;
-    float scaledFeature;
-    float featureMin;
-    float featureMax;
+
+    
     float curVolume;
+    float scaledFeatureVal;
+    
+    const string lifespanFeatureName = "specflux";//"energy";
+    const string onsetFeatureName = "specflux";
+    const string movementFeatureName = "specflux";//"hfc";
+    const string sizeFeatureName = "specflux";//"energy";
+    const string colorFeatureName = "decrease";
+    const string textureFeatureName = "spread";
+    
+    int lifespanFeatureIdx;
+    int onsetFeatureIdx;
+    int movementFeatureIdx;
+    int sizeFeatureIdx;
+    int colorFeatureIdx;
+    int textureFeatureIdx;
+    
+    float lifespanFeatureVal;
+    float sizeFeatureVal;
+    float colorFeatureVal;
+    float textureFeatureVal;
+    float movementFeatureVal, movementFeatureLongAvg, movementFeatureShortAvg;
 };

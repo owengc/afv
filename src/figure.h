@@ -15,17 +15,16 @@
 class Figure {
 public:
 	//Consructor
-	Figure(float data, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc);
+	Figure(const float l, const float s, const float t, ofxVectorGraphics * vg, ofxAudioFeaturesChannel * fc);
 	
 	//Methods
-	void update();
+	void update(const float t, const float x);
 	void chooseTarget();
 	void moveTo();
-	void draw(const float textureFeatureValue);
+	void draw();
 	
 	//Properties
 	ofColor color;
-	float input;
 	float xPosition;
 	float yPosition;
 	float xTarget;
@@ -35,6 +34,10 @@ public:
     float radius;
     
 	float lifespan;
+    float size;
+    float texture;
+    
+    
     ofxVectorGraphics * vectorGraphics;
     ofxAudioFeaturesChannel * featuresChannel;
 };
