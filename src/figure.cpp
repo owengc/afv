@@ -72,7 +72,7 @@ void Figure::draw(){
 		ofSetColor(color);//change back to white at some point
 		ofFill();
         ofCircle(xPosition, yPosition, 0.0, radius);
-        if(radius > 1.0){
+        /*if(radius > 1.0){
             
             vectorGraphics->setColor(color.getHex());
             vectorGraphics->beginShape();
@@ -106,6 +106,6 @@ void Figure::draw(){
                 angle += step;
             }
             vectorGraphics->endShape(true);
-        }
+        }*/
 	}
 }
